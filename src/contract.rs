@@ -27,12 +27,12 @@ impl CounterContract<'_> {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod test_utils {
     use anyhow::bail;
-    use cosmwasm_std::{from_slice, Addr, DepsMut, Empty, Env, MessageInfo, Response};
+    use cosmwasm_std::{from_slice, Addr, DepsMut, Empty, Env, MessageInfo, Response, StdResult};
     use cw_multi_test::{App, Contract, Executor};
 
-    use crate::counter;
+    use crate::counter::{self, CountResponse};
 
     use super::{
         ContractError, ContractExecMsg, ContractQueryMsg, CounterContract, InstantiateMsg,
@@ -143,6 +143,12 @@ mod tests {
             app.execute_contract(sender.clone(), self.0.clone(), &msg, &[])
                 .map_err(|err| err.downcast().unwrap())
                 .map(|_| ())
+        }
+
+        pub fn count(&self, app: &App) -> StdResult<CountResponse> {
+            let msg = counter::QueryMsg::Count {};
+
+            app.wrap().query_wasm_smart(self.0.clone(), &msg)
         }
     }
 }
