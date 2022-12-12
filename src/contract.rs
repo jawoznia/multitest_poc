@@ -2,6 +2,8 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use cw_storage_plus::Item;
 use sylvia::contract;
 
+use crate::counter;
+
 pub struct CounterContract<'a> {
     pub(crate) count: Item<'a, u32>,
 }
@@ -9,6 +11,7 @@ pub struct CounterContract<'a> {
 pub type ContractError = StdError;
 
 #[contract]
+#[messages(counter as Counter)]
 impl CounterContract<'_> {
     pub const fn new() -> Self {
         Self {
