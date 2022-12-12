@@ -12,3 +12,7 @@ schemars = "0.8.11"
 cosmwasm-schema = "1.1.9"
 serde = "1"
 cw-storage-plus = "1.0.1"
+
+[dev-dependencies]
+cw-multi-test = "0.16"
+anyhow = "1"
