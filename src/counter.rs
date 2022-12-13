@@ -36,7 +36,9 @@ impl Counter for CounterContract<'_> {
     }
 }
 
+// =====================================================
 // Generated
+// =====================================================
 #[cfg(test)]
 pub mod test_utils {
     use anyhow::Error;
@@ -48,15 +50,18 @@ pub mod test_utils {
     use super::{CountResponse, ExecMsg, QueryMsg};
 
     pub struct CounterProxy<'app> {
-        contract: Addr,
-        app: &'app crate::sylvia_utils::App,
+        pub contract_addr: Addr,
+        pub app: &'app crate::sylvia_utils::App,
     }
     impl<'app> CounterProxy<'app> {
-        fn new(contract: Addr, app: &'app sylvia_utils::App) -> Self {
-            CounterProxy { contract, app }
+        pub fn new(contract_addr: Addr, app: &'app sylvia_utils::App) -> Self {
+            CounterProxy { contract_addr, app }
         }
 
-        fn increase_count(&self, params: sylvia_utils::ExecParams) -> Result<AppResponse, Error> {
+        pub fn increase_count(
+            &self,
+            params: sylvia_utils::ExecParams,
+        ) -> Result<AppResponse, Error> {
             let msg = ExecMsg::IncreaseCount {};
 
             self.app
@@ -64,21 +69,21 @@ pub mod test_utils {
                 .borrow_mut()
                 .execute_contract(
                     params.sender.clone(),
-                    self.contract.clone(),
+                    self.contract_addr.clone(),
                     &msg,
                     params.funds,
                 )
                 .map_err(|err| err.downcast().unwrap())
         }
 
-        fn count(&self) -> StdResult<CountResponse> {
+        pub fn count(&self) -> StdResult<CountResponse> {
             let msg = QueryMsg::Count {};
 
             self.app
                 .app
                 .borrow()
                 .wrap()
-                .query_wasm_smart(self.contract.clone(), &msg)
+                .query_wasm_smart(self.contract_addr.clone(), &msg)
         }
     }
 }

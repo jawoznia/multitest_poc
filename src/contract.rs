@@ -25,14 +25,19 @@ impl CounterContract<'_> {
         Ok(Response::new())
     }
 }
-
+// =====================================================
+// Generated
+// =====================================================
 #[cfg(any(test, feature = "mt"))]
 pub mod test_utils {
     use anyhow::bail;
     use cosmwasm_std::{from_slice, Addr, DepsMut, Empty, Env, MessageInfo, Response, StdResult};
     use cw_multi_test::{App, Contract, Executor};
 
-    use crate::counter::{self, CountResponse};
+    use crate::{
+        counter::{self, test_utils::CounterProxy, CountResponse},
+        sylvia_utils,
+    };
 
     use super::{
         ContractError, ContractExecMsg, ContractQueryMsg, CounterContract, InstantiateMsg,
@@ -102,53 +107,62 @@ pub mod test_utils {
         }
     }
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    pub struct CounterCodeId(u64);
+    pub struct CounterContractCodeId<'app> {
+        code_id: u64,
+        app: &'app sylvia_utils::App,
+    }
 
-    impl CounterCodeId {
-        pub fn store_code(app: &mut App) -> Self {
-            let code_id = app.store_code(Box::new(CounterContract::new()));
-            Self(code_id)
+    impl<'app> CounterContractCodeId<'app> {
+        pub fn store_code(app: &'app mut sylvia_utils::App) -> Self {
+            let code_id = app
+                .app
+                .borrow_mut()
+                .store_code(Box::new(CounterContract::new()));
+            Self { code_id, app }
         }
 
         pub fn code_id(&self) -> u64 {
-            self.0
+            self.code_id
         }
 
         #[track_caller]
         pub fn instantiate(
             self,
-            app: &mut App,
             sender: &Addr,
             label: &str,
             admin: Option<String>,
-        ) -> Result<CounterProxy, ContractError> {
+        ) -> Result<CounterContractProxy<'app>, ContractError> {
             let msg = InstantiateMsg {};
 
-            app.instantiate_contract(self.0, sender.clone(), &msg, &[], label, admin)
+            self.app
+                .app
+                .borrow_mut()
+                .instantiate_contract(self.code_id, sender.clone(), &msg, &[], label, admin)
                 .map_err(|err| err.downcast().unwrap())
-                .map(CounterProxy)
+                .map(|addr| CounterContractProxy {
+                    contract_addr: addr,
+                    app: &self.app,
+                })
         }
     }
 
-    #[derive(Debug)]
-    pub struct CounterProxy(Addr);
+    pub struct CounterContractProxy<'app> {
+        pub contract_addr: Addr,
+        pub app: &'app sylvia_utils::App,
+    }
 
-    impl CounterProxy {
+    impl<'app> CounterContractProxy<'app> {
         // cw20-base
-        #[track_caller]
-        pub fn increase_counter(&self, app: &mut App, sender: &Addr) -> Result<(), ContractError> {
-            let msg = counter::ExecMsg::IncreaseCount {};
+        //        #[track_caller]
+        //        pub fn increase_counter(&self, sender: &Addr) -> Result<Response, ContractError> {
+        //            let msg = counter::ExecMsg::IncreaseCount {};
+        //
+        //            app.execute_contract(sender.clone(), self.contract_addr.clone(), &msg, &[])
+        //                .map_err(|err| err.downcast().unwrap())
+        //        }
 
-            app.execute_contract(sender.clone(), self.0.clone(), &msg, &[])
-                .map_err(|err| err.downcast().unwrap())
-                .map(|_| ())
-        }
-
-        pub fn count(&self, app: &App) -> StdResult<CountResponse> {
-            let msg = counter::QueryMsg::Count {};
-
-            app.wrap().query_wasm_smart(self.0.clone(), &msg)
+        pub fn counter_proxy(&self) -> CounterProxy<'app> {
+            CounterProxy::new(self.contract_addr.clone(), self.app)
         }
     }
 }

@@ -1,25 +1,27 @@
 use cosmwasm_std::Addr;
-use cw_multi_test::App;
 
-use crate::contract::test_utils::CounterCodeId;
+use crate::{
+    contract::test_utils::CounterContractCodeId,
+    sylvia_utils::{self, ExecParams},
+};
 
 #[test]
 fn basic() {
-    let mut app = App::default();
+    let mut app = sylvia_utils::App::new();
+    let code_id = CounterContractCodeId::store_code(&mut app);
 
     let owner = Addr::unchecked("owner");
-
-    let code_id = CounterCodeId::store_code(&mut app);
+    let params = ExecParams::new(&owner, &[]);
 
     let contract = code_id
-        .instantiate(&mut app, &owner, "CounterContract", None)
+        .instantiate(&owner, "CounterContract", None)
         .unwrap();
 
-    let resp = contract.count(&app).unwrap();
+    let resp = contract.counter_proxy().count().unwrap();
     assert_eq!(resp.count, 0);
 
-    contract.increase_counter(&mut app, &owner).unwrap();
+    contract.counter_proxy().increase_count(params).unwrap();
 
-    let resp = contract.count(&app).unwrap();
+    let resp = contract.counter_proxy().count().unwrap();
     assert_eq!(resp.count, 1);
 }
