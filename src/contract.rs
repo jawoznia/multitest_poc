@@ -31,13 +31,10 @@ impl CounterContract<'_> {
 #[cfg(any(test, feature = "mt"))]
 pub mod test_utils {
     use anyhow::bail;
-    use cosmwasm_std::{from_slice, Addr, DepsMut, Empty, Env, MessageInfo, Response, StdResult};
-    use cw_multi_test::{App, Contract, Executor};
+    use cosmwasm_std::{from_slice, Addr, DepsMut, Empty, Env, MessageInfo, Response};
+    use cw_multi_test::{Contract, Executor};
 
-    use crate::{
-        counter::{self, test_utils::CounterProxy, CountResponse},
-        sylvia_utils,
-    };
+    use crate::{counter::test_utils::CounterProxy, sylvia_utils};
 
     use super::{
         ContractError, ContractExecMsg, ContractQueryMsg, CounterContract, InstantiateMsg,
@@ -141,7 +138,7 @@ pub mod test_utils {
                 .map_err(|err| err.downcast().unwrap())
                 .map(|addr| CounterContractProxy {
                     contract_addr: addr,
-                    app: &self.app,
+                    app: self.app,
                 })
         }
     }

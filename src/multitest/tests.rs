@@ -2,12 +2,12 @@ use cosmwasm_std::Addr;
 
 use crate::{
     contract::test_utils::CounterContractCodeId,
-    sylvia_utils::{self, ExecParams},
+    sylvia_utils::{App, ExecParams},
 };
 
 #[test]
 fn basic() {
-    let mut app = sylvia_utils::App::new();
+    let mut app = App::default();
     let code_id = CounterContractCodeId::store_code(&mut app);
 
     let owner = Addr::unchecked("owner");
