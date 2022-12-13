@@ -35,3 +35,50 @@ impl Counter for CounterContract<'_> {
         Ok(CountResponse { count })
     }
 }
+
+// Generated
+#[cfg(test)]
+pub mod test_utils {
+    use anyhow::Error;
+    use cosmwasm_std::{Addr, StdResult};
+    use cw_multi_test::{AppResponse, Executor};
+
+    use crate::sylvia_utils;
+
+    use super::{CountResponse, ExecMsg, QueryMsg};
+
+    pub struct CounterProxy<'app> {
+        contract: Addr,
+        app: &'app crate::sylvia_utils::App,
+    }
+    impl<'app> CounterProxy<'app> {
+        fn new(contract: Addr, app: &'app sylvia_utils::App) -> Self {
+            CounterProxy { contract, app }
+        }
+
+        fn increase_count(&self, params: sylvia_utils::ExecParams) -> Result<AppResponse, Error> {
+            let msg = ExecMsg::IncreaseCount {};
+
+            self.app
+                .app
+                .borrow_mut()
+                .execute_contract(
+                    params.sender.clone(),
+                    self.contract.clone(),
+                    &msg,
+                    params.funds,
+                )
+                .map_err(|err| err.downcast().unwrap())
+        }
+
+        fn count(&self) -> StdResult<CountResponse> {
+            let msg = QueryMsg::Count {};
+
+            self.app
+                .app
+                .borrow()
+                .wrap()
+                .query_wasm_smart(self.contract.clone(), &msg)
+        }
+    }
+}

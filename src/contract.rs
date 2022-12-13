@@ -26,7 +26,7 @@ impl CounterContract<'_> {
     }
 }
 
-#[cfg(test)]
+#[cfg(any(test, feature = "mt"))]
 pub mod test_utils {
     use anyhow::bail;
     use cosmwasm_std::{from_slice, Addr, DepsMut, Empty, Env, MessageInfo, Response, StdResult};
