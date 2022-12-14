@@ -2,7 +2,7 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult};
 use sylvia::interface;
 
-use crate::contract::{ContractError, CounterContract};
+use crate::{contract::CounterContract, error::ContractError};
 
 #[cw_serde]
 pub struct CountResponse {
@@ -24,8 +24,14 @@ impl Counter for CounterContract<'_> {
     type Error = ContractError;
     fn increase_count(&self, ctx: (DepsMut, Env, MessageInfo)) -> Result<Response, ContractError> {
         let (deps, ..) = ctx;
-        self.count
-            .update(deps.storage, |c| -> StdResult<_> { Ok(c + 1) })?;
+        let step = self.step.load(deps.storage)?;
+        let count = self.count.load(deps.storage)?;
+        let new_count = step + count;
+        if new_count > 42 {
+            return Err(ContractError::Overflow);
+        }
+
+        self.count.save(deps.storage, &new_count)?;
         Ok(Response::new())
     }
 
@@ -41,11 +47,10 @@ impl Counter for CounterContract<'_> {
 // =====================================================
 #[cfg(test)]
 pub mod test_utils {
-    use anyhow::Error;
     use cosmwasm_std::{Addr, StdResult};
     use cw_multi_test::{AppResponse, Executor};
 
-    use crate::sylvia_utils;
+    use crate::{error::ContractError, sylvia_utils};
 
     use super::{CountResponse, ExecMsg, QueryMsg};
 
@@ -61,7 +66,7 @@ pub mod test_utils {
         pub fn increase_count(
             &self,
             params: sylvia_utils::ExecParams,
-        ) -> Result<AppResponse, Error> {
+        ) -> Result<AppResponse, ContractError> {
             let msg = ExecMsg::IncreaseCount {};
 
             self.app

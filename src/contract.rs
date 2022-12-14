@@ -1,14 +1,13 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw_storage_plus::Item;
 use sylvia::contract;
 
-use crate::counter;
+use crate::{counter, error::ContractError};
 
 pub struct CounterContract<'a> {
     pub(crate) count: Item<'a, u32>,
+    pub(crate) step: Item<'a, u32>,
 }
-
-pub type ContractError = StdError;
 
 #[contract]
 #[messages(counter as Counter)]
@@ -16,12 +15,26 @@ impl CounterContract<'_> {
     pub const fn new() -> Self {
         Self {
             count: Item::new("count"),
+            step: Item::new("step"),
         }
     }
+
     #[msg(instantiate)]
     pub fn instantiate(&self, ctx: (DepsMut, Env, MessageInfo)) -> Result<Response, ContractError> {
         let (deps, ..) = ctx;
         self.count.save(deps.storage, &0)?;
+        self.step.save(deps.storage, &1)?;
+        Ok(Response::new())
+    }
+
+    #[msg(exec)]
+    pub fn set_counter_step(
+        &self,
+        ctx: (DepsMut, Env, MessageInfo),
+        step: u32,
+    ) -> Result<Response, ContractError> {
+        let (deps, ..) = ctx;
+        self.step.save(deps.storage, &step)?;
         Ok(Response::new())
     }
 }
@@ -32,12 +45,12 @@ impl CounterContract<'_> {
 pub mod test_utils {
     use anyhow::bail;
     use cosmwasm_std::{from_slice, Addr, DepsMut, Empty, Env, MessageInfo, Response};
-    use cw_multi_test::{Contract, Executor};
+    use cw_multi_test::{AppResponse, Contract, Executor};
 
     use crate::{counter::test_utils::CounterProxy, sylvia_utils};
 
     use super::{
-        ContractError, ContractExecMsg, ContractQueryMsg, CounterContract, InstantiateMsg,
+        ContractError, ContractExecMsg, ContractQueryMsg, CounterContract, ExecMsg, InstantiateMsg,
     };
 
     impl Contract<Empty> for CounterContract<'_> {
@@ -149,14 +162,26 @@ pub mod test_utils {
     }
 
     impl<'app> CounterContractProxy<'app> {
-        // cw20-base
-        //        #[track_caller]
-        //        pub fn increase_counter(&self, sender: &Addr) -> Result<Response, ContractError> {
-        //            let msg = counter::ExecMsg::IncreaseCount {};
-        //
-        //            app.execute_contract(sender.clone(), self.contract_addr.clone(), &msg, &[])
-        //                .map_err(|err| err.downcast().unwrap())
-        //        }
+        #[track_caller]
+        pub fn set_counter_step(
+            &self,
+            params: sylvia_utils::ExecParams,
+
+            step: u32,
+        ) -> Result<AppResponse, ContractError> {
+            let msg = ExecMsg::SetCounterStep { step };
+
+            self.app
+                .app
+                .borrow_mut()
+                .execute_contract(
+                    params.sender.clone(),
+                    self.contract_addr.clone(),
+                    &msg,
+                    params.funds,
+                )
+                .map_err(|err| err.downcast().unwrap())
+        }
 
         pub fn counter_proxy(&self) -> CounterProxy<'app> {
             CounterProxy::new(self.contract_addr.clone(), self.app)

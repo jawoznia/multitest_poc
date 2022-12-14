@@ -7,6 +7,7 @@ pub struct App {
     pub app: RefCell<cw_multi_test::App>,
 }
 
+#[derive(Clone, PartialEq, Debug, Eq)]
 pub struct ExecParams<'a> {
     pub sender: &'a Addr,
     pub funds: &'a [Coin],
