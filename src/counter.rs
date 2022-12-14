@@ -91,4 +91,10 @@ pub mod test_utils {
                 .query_wasm_smart(self.contract_addr.clone(), &msg)
         }
     }
+
+    impl Into<Addr> for CounterProxy<'_> {
+        fn into(self) -> Addr {
+            self.contract_addr
+        }
+    }
 }

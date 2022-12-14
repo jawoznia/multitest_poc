@@ -187,4 +187,10 @@ pub mod test_utils {
             CounterProxy::new(self.contract_addr.clone(), self.app)
         }
     }
+
+    impl Into<Addr> for CounterContractProxy<'_> {
+        fn into(self) -> Addr {
+            self.contract_addr
+        }
+    }
 }
