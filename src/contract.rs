@@ -47,7 +47,10 @@ pub mod test_utils {
     use cosmwasm_std::{from_slice, Addr, DepsMut, Empty, Env, MessageInfo, Response};
     use cw_multi_test::{AppResponse, Contract, Executor};
 
-    use crate::{counter::test_utils::CounterProxy, sylvia_utils};
+    use crate::{
+        counter::test_utils::CounterProxy,
+        sylvia_utils::{self, InstantiateParams},
+    };
 
     use super::{
         ContractError, ContractExecMsg, ContractQueryMsg, CounterContract, ExecMsg, InstantiateMsg,
@@ -138,16 +141,21 @@ pub mod test_utils {
         #[track_caller]
         pub fn instantiate(
             self,
-            sender: &Addr,
-            label: &str,
-            admin: Option<String>,
+            params: InstantiateParams,
         ) -> Result<CounterContractProxy<'app>, ContractError> {
             let msg = InstantiateMsg {};
 
             self.app
                 .app
                 .borrow_mut()
-                .instantiate_contract(self.code_id, sender.clone(), &msg, &[], label, admin)
+                .instantiate_contract(
+                    self.code_id,
+                    params.sender.clone(),
+                    &msg,
+                    params.funds,
+                    params.label,
+                    params.admin,
+                )
                 .map_err(|err| err.downcast().unwrap())
                 .map(|addr| CounterContractProxy {
                     contract_addr: addr,

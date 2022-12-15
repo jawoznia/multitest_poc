@@ -3,8 +3,10 @@ use cosmwasm_std::Addr;
 use crate::{
     contract::test_utils::CounterContractCodeId,
     error::ContractError,
-    sylvia_utils::{App, ExecParams},
+    sylvia_utils::{App, ExecParams, InstantiateParams},
 };
+
+const LABEL: &str = "CounterContract";
 
 #[test]
 fn basic() {
@@ -12,16 +14,18 @@ fn basic() {
     let code_id = CounterContractCodeId::store_code(&mut app);
 
     let owner = Addr::unchecked("owner");
-    let params = ExecParams::new(&owner, &[]);
+    let exec_params = ExecParams::new(&owner, &[]);
+    let instantiate_params = InstantiateParams::new(&owner, &[], LABEL, None);
 
-    let contract = code_id
-        .instantiate(&owner, "CounterContract", None)
-        .unwrap();
+    let contract = code_id.instantiate(instantiate_params).unwrap();
 
     let resp = contract.counter_proxy().count().unwrap();
     assert_eq!(resp.count, 0);
 
-    contract.counter_proxy().increase_count(params).unwrap();
+    contract
+        .counter_proxy()
+        .increase_count(exec_params)
+        .unwrap();
 
     let resp = contract.counter_proxy().count().unwrap();
     assert_eq!(resp.count, 1);
@@ -33,28 +37,27 @@ fn overflow() {
     let code_id = CounterContractCodeId::store_code(&mut app);
 
     let owner = Addr::unchecked("owner");
-    let params = ExecParams::new(&owner, &[]);
+    let exec_params = ExecParams::new(&owner, &[]);
+    let instantiate_params = InstantiateParams::new(&owner, &[], LABEL, None);
 
-    let contract = code_id
-        .instantiate(&owner, "CounterContract", None)
-        .unwrap();
+    let contract = code_id.instantiate(instantiate_params).unwrap();
 
     let resp = contract.counter_proxy().count().unwrap();
     assert_eq!(resp.count, 0);
 
     contract
         .counter_proxy()
-        .increase_count(params.clone())
+        .increase_count(exec_params.clone())
         .unwrap();
 
     let resp = contract.counter_proxy().count().unwrap();
     assert_eq!(resp.count, 1);
 
-    contract.set_counter_step(params.clone(), 42).unwrap();
+    contract.set_counter_step(exec_params.clone(), 42).unwrap();
 
     let err = contract
         .counter_proxy()
-        .increase_count(params.clone())
+        .increase_count(exec_params.clone())
         .unwrap_err();
     assert_eq!(err, ContractError::Overflow);
 }
