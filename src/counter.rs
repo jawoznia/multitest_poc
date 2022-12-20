@@ -45,7 +45,7 @@ impl Counter for CounterContract<'_> {
 // =====================================================
 // Generated
 // =====================================================
-#[cfg(test)]
+#[cfg(any(test, feature = "mt"))]
 pub mod test_utils {
     use cosmwasm_std::{Addr, StdResult};
     use cw_multi_test::{AppResponse, Executor};

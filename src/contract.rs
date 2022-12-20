@@ -44,13 +44,10 @@ impl CounterContract<'_> {
 #[cfg(any(test, feature = "mt"))]
 pub mod test_utils {
     use anyhow::bail;
-    use cosmwasm_std::{from_slice, Addr, DepsMut, Empty, Env, MessageInfo, Response};
+    use cosmwasm_std::{from_slice, Addr, Coin, DepsMut, Empty, Env, MessageInfo, Response};
     use cw_multi_test::{AppResponse, Contract, Executor};
 
-    use crate::{
-        counter::test_utils::CounterProxy,
-        sylvia_utils::{self, InstantiateParams},
-    };
+    use crate::{counter::test_utils::CounterProxy, sylvia_utils};
 
     use super::{
         ContractError, ContractExecMsg, ContractQueryMsg, CounterContract, ExecMsg, InstantiateMsg,
@@ -125,6 +122,52 @@ pub mod test_utils {
         app: &'app sylvia_utils::App,
     }
 
+    // Probably it can be extracted as as library part but it would require another layer of
+    // abstraction
+    pub struct InstantiateProxy<'a, 'app> {
+        code_id: &'a CounterContractCodeId<'app>,
+        funds: &'a [Coin],
+        label: &'a str,
+        admin: Option<String>,
+    }
+
+    impl<'a, 'app> InstantiateProxy<'a, 'app> {
+        pub fn with_funds(self, funds: &'a [Coin]) -> Self {
+            Self { funds, ..self }
+        }
+
+        pub fn with_label(self, label: &'a str) -> Self {
+            Self { label, ..self }
+        }
+
+        pub fn with_admin<'s>(self, admin: impl Into<Option<&'s str>>) -> Self {
+            let admin = admin.into().map(str::to_owned);
+            Self { admin, ..self }
+        }
+
+        #[track_caller]
+        pub fn call(self, sender: &str) -> Result<CounterContractProxy<'app>, ContractError> {
+            let msg = InstantiateMsg {};
+            self.code_id
+                .app
+                .app
+                .borrow_mut()
+                .instantiate_contract(
+                    self.code_id.code_id,
+                    Addr::unchecked(sender),
+                    &msg,
+                    self.funds,
+                    self.label,
+                    self.admin,
+                )
+                .map_err(|err| err.downcast().unwrap())
+                .map(|addr| CounterContractProxy {
+                    contract_addr: addr,
+                    app: self.code_id.app,
+                })
+        }
+    }
+
     impl<'app> CounterContractCodeId<'app> {
         pub fn store_code(app: &'app mut sylvia_utils::App) -> Self {
             let code_id = app
@@ -138,29 +181,16 @@ pub mod test_utils {
             self.code_id
         }
 
-        #[track_caller]
         pub fn instantiate(
-            self,
-            params: InstantiateParams,
-        ) -> Result<CounterContractProxy<'app>, ContractError> {
-            let msg = InstantiateMsg {};
-
-            self.app
-                .app
-                .borrow_mut()
-                .instantiate_contract(
-                    self.code_id,
-                    params.sender.clone(),
-                    &msg,
-                    params.funds,
-                    params.label,
-                    params.admin,
-                )
-                .map_err(|err| err.downcast().unwrap())
-                .map(|addr| CounterContractProxy {
-                    contract_addr: addr,
-                    app: self.app,
-                })
+            &self,
+            /* here goes generated arguments for instantiation */
+        ) -> InstantiateProxy<'_, 'app> {
+            InstantiateProxy {
+                code_id: self,
+                funds: &[],
+                label: "CounterContract",
+                admin: None,
+            }
         }
     }
 

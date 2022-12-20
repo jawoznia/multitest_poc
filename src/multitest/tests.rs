@@ -13,11 +13,11 @@ fn basic() {
     let mut app = App::default();
     let code_id = CounterContractCodeId::store_code(&mut app);
 
-    let owner = Addr::unchecked("owner");
-    let exec_params = ExecParams::new(&owner, &[]);
-    let instantiate_params = InstantiateParams::new(&owner, &[], LABEL, None);
+    let owner = "owner";
+    let owner_addr = Addr::unchecked(owner);
+    let exec_params = ExecParams::new(&owner_addr, &[]);
 
-    let contract = code_id.instantiate(instantiate_params).unwrap();
+    let contract = code_id.instantiate().call(owner).unwrap();
 
     let resp = contract.counter_proxy().count().unwrap();
     assert_eq!(resp.count, 0);
@@ -36,11 +36,11 @@ fn overflow() {
     let mut app = App::default();
     let code_id = CounterContractCodeId::store_code(&mut app);
 
-    let owner = Addr::unchecked("owner");
-    let exec_params = ExecParams::new(&owner, &[]);
-    let instantiate_params = InstantiateParams::new(&owner, &[], LABEL, None);
+    let owner = "owner";
+    let owner_addr = Addr::unchecked(owner);
+    let exec_params = ExecParams::new(&owner_addr, &[]);
 
-    let contract = code_id.instantiate(instantiate_params).unwrap();
+    let contract = code_id.instantiate().with_label(LABEL).call(owner).unwrap();
 
     let resp = contract.counter_proxy().count().unwrap();
     assert_eq!(resp.count, 0);
