@@ -1,39 +1,15 @@
-use std::cell::RefCell;
-
-use cosmwasm_std::{Addr, Coin};
-
-#[derive(Default)]
-pub struct App {
-    pub app: RefCell<cw_multi_test::App>,
+/// Trait to expose messages of the contract
+pub trait Contract {
+    type InstantiateMsg;
+    type ExecMsg;
+    type QueryMsg;
+    type MigrationMsg;
 }
 
-#[derive(Clone, PartialEq, Debug, Eq)]
-pub struct ExecParams<'a> {
-    pub sender: &'a Addr,
-    pub funds: &'a [Coin],
-}
+/// Trait to expose multitest utils of the contract
+pub trait Multitest<'app> {
+    type CodeId;
+    type Contract;
 
-impl<'a> ExecParams<'a> {
-    pub fn new(sender: &'a Addr, funds: &'a [Coin]) -> Self {
-        Self { sender, funds }
-    }
-}
-
-#[derive(Clone, PartialEq, Debug, Eq)]
-pub struct InstantiateParams<'a> {
-    pub sender: &'a Addr,
-    pub funds: &'a [Coin],
-    pub label: &'a str,
-    pub admin: Option<String>,
-}
-
-impl<'a> InstantiateParams<'a> {
-    pub fn new(sender: &'a Addr, funds: &'a [Coin], label: &'a str, admin: Option<String>) -> Self {
-        Self {
-            sender,
-            funds,
-            label,
-            admin,
-        }
-    }
+    fn store_code(app: &'app mut sylvia::multitest::App) -> Self::CodeId;
 }
