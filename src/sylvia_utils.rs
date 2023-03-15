@@ -7,7 +7,9 @@ pub trait Contract {
 }
 
 /// Trait to expose multitest utils of the contract
-pub trait Multitest {
+pub trait Multitest<'app> {
     type CodeId;
     type Contract;
+
+    fn store_code(app: &'app mut sylvia::multitest::App) -> Self::CodeId;
 }

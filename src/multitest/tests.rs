@@ -10,7 +10,7 @@ const LABEL: &str = "CounterContract";
 #[test]
 fn basic() {
     let mut app = App::default();
-    let code_id = CounterContract::CodeId::store_code(&mut app);
+    let code_id = CounterContract::store_code(&mut app);
 
     let owner = "owner";
     let owner_addr = Addr::unchecked(owner);
@@ -34,7 +34,7 @@ fn basic() {
 #[test]
 fn overflow() {
     let mut app = App::default();
-    let code_id = <CounterContract<'_> as Multitest>::CodeId::store_code(&mut app);
+    let code_id = CounterContract::store_code(&mut app);
 
     let owner = "owner";
     let owner_addr = Addr::unchecked(owner);

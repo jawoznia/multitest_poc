@@ -49,6 +49,7 @@ impl CounterContract<'_> {
         Ok(Response::new())
     }
 }
+
 // =====================================================
 // To be Generated
 // =====================================================
@@ -60,8 +61,25 @@ pub mod test_utils {
     use super::multitest_utils::CounterContractProxy;
     use super::CounterContract;
 
-    impl<'app> Multitest for CounterContract<'app> {
+    /// To fix ambiguois call
+    /// This should be defined in sylvia utils
+    /// Definitely not generated
+    pub trait ContractCodeId<'app> {
+        fn store_code(app: &'app mut sylvia::multitest::App) -> Self;
+    }
+
+    impl<'app> ContractCodeId<'app> for CounterContractCodeId<'app> {
+        fn store_code(app: &'app mut sylvia::multitest::App) -> CounterContractCodeId<'app> {
+            CounterContractCodeId::store_code(app)
+        }
+    }
+
+    impl<'app> Multitest<'app> for CounterContract<'app> {
         type CodeId = CounterContractCodeId<'app>;
         type Contract = CounterContractProxy<'app>;
+
+        fn store_code(app: &'app mut sylvia::multitest::App) -> Self::CodeId {
+            Self::CodeId::store_code(app)
+        }
     }
 }
