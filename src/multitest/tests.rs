@@ -1,10 +1,10 @@
 use cosmwasm_std::Addr;
 
-use crate::{
-    contract::test_utils::CounterContractCodeId,
-    error::ContractError,
-    sylvia_utils::{App, ExecParams, InstantiateParams},
-};
+use crate::contract::test_utils::CounterContractCodeId;
+use crate::counter::test_utils::CounterMethods;
+use crate::error::ContractError;
+use crate::sylvia_utils::App;
+use crate::sylvia_utils::ExecParams;
 
 const LABEL: &str = "CounterContract";
 

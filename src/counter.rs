@@ -20,6 +20,32 @@ pub trait Counter {
     fn count(&self, ctx: (Deps, Env)) -> StdResult<CountResponse>;
 }
 
+// =====================================================================
+// ===================== Generated with Interface ======================
+// =====================================================================
+// TODO: Figure out this module name
+#[cfg(test)]
+pub mod trait_utils {
+    use cosmwasm_std::Addr;
+
+    pub struct CounterProxy<'app> {
+        pub contract_addr: Addr,
+        pub app: &'app crate::sylvia_utils::App,
+    }
+    impl<'app> CounterProxy<'app> {
+        pub fn new(contract_addr: Addr, app: &'app crate::sylvia_utils::App) -> Self {
+            CounterProxy { contract_addr, app }
+        }
+    }
+    impl Into<Addr> for CounterProxy<'_> {
+        fn into(self) -> Addr {
+            self.contract_addr
+        }
+    }
+}
+// =====================================================================
+// =====================================================================
+
 impl Counter for CounterContract<'_> {
     type Error = ContractError;
     fn increase_count(&self, ctx: (DepsMut, Env, MessageInfo)) -> Result<Response, ContractError> {
@@ -47,23 +73,26 @@ impl Counter for CounterContract<'_> {
 // =====================================================
 #[cfg(any(test, feature = "mt"))]
 pub mod test_utils {
-    use cosmwasm_std::{Addr, StdResult};
+    use super::*;
+    use cosmwasm_std::StdResult;
     use cw_multi_test::{AppResponse, Executor};
 
-    use crate::{error::ContractError, sylvia_utils};
+    use crate::error::ContractError;
+    use crate::sylvia_utils;
 
     use super::{CountResponse, ExecMsg, QueryMsg};
 
-    pub struct CounterProxy<'app> {
-        pub contract_addr: Addr,
-        pub app: &'app crate::sylvia_utils::App,
-    }
-    impl<'app> CounterProxy<'app> {
-        pub fn new(contract_addr: Addr, app: &'app sylvia_utils::App) -> Self {
-            CounterProxy { contract_addr, app }
-        }
+    pub trait CounterMethods {
+        fn increase_count(
+            &self,
+            params: sylvia_utils::ExecParams,
+        ) -> Result<AppResponse, ContractError>;
 
-        pub fn increase_count(
+        fn count(&self) -> StdResult<CountResponse>;
+    }
+
+    impl<'app> CounterMethods for trait_utils::CounterProxy<'app> {
+        fn increase_count(
             &self,
             params: sylvia_utils::ExecParams,
         ) -> Result<AppResponse, ContractError> {
@@ -81,7 +110,7 @@ pub mod test_utils {
                 .map_err(|err| err.downcast().unwrap())
         }
 
-        pub fn count(&self) -> StdResult<CountResponse> {
+        fn count(&self) -> StdResult<CountResponse> {
             let msg = QueryMsg::Count {};
 
             self.app
@@ -89,12 +118,6 @@ pub mod test_utils {
                 .borrow()
                 .wrap()
                 .query_wasm_smart(self.contract_addr.clone(), &msg)
-        }
-    }
-
-    impl Into<Addr> for CounterProxy<'_> {
-        fn into(self) -> Addr {
-            self.contract_addr
         }
     }
 }
