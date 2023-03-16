@@ -1,22 +1,2 @@
-[package]
-name = "multitest_poc"
-version = "0.1.0"
-edition = "2021"
-
-[features]
-mt = ["anyhow", "cw-multi-test"]
-
-[dependencies]
-sylvia = "0.2.2"
-cosmwasm-std = "1.1.9"
-schemars = "0.8.11"
-cosmwasm-schema = "1.1.9"
-serde = "1"
-cw-storage-plus = "1.0.1"
-thiserror = "1.0.37"
-anyhow = { version = "1", optional = true }
-cw-multi-test = { version = "0.16", optional = true }
-
-[dev-dependencies]
-cw-multi-test = "0.16"
-anyhow = "1"
+[workspace]
+members = ["trait_impl_together", "all_separate"]
