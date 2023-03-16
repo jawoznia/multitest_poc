@@ -3,7 +3,7 @@ use utils::error::ContractError;
 use utils::sylvia_utils::{App, ExecParams};
 
 use crate::contract::test_utils::CounterContractCodeId;
-use crate::counter::test_utils::CounterMethods;
+use crate::counter_impl::test_utils::CounterMethods;
 
 const LABEL: &str = "CounterContract";
 
