@@ -1,8 +1,9 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw_storage_plus::Item;
 use sylvia::contract;
+use utils::error::ContractError;
 
-use crate::{counter, error::ContractError};
+use crate::counter;
 
 pub struct CounterContract<'a> {
     pub(crate) count: Item<'a, u32>,
@@ -48,8 +49,6 @@ pub mod test_utils {
     use anyhow::bail;
     use cosmwasm_std::{from_slice, Addr, Coin, DepsMut, Empty, Env, MessageInfo, Response};
     use cw_multi_test::{AppResponse, Contract, Executor};
-
-    use crate::sylvia_utils;
 
     use super::{
         ContractError, ContractExecMsg, ContractQueryMsg, CounterContract, ExecMsg, InstantiateMsg,
@@ -121,7 +120,7 @@ pub mod test_utils {
 
     pub struct CounterContractCodeId<'app> {
         code_id: u64,
-        app: &'app sylvia_utils::App,
+        app: &'app utils::sylvia_utils::App,
     }
 
     // Probably it can be extracted as as library part but it would require another layer of
@@ -171,7 +170,7 @@ pub mod test_utils {
     }
 
     impl<'app> CounterContractCodeId<'app> {
-        pub fn store_code(app: &'app mut sylvia_utils::App) -> Self {
+        pub fn store_code(app: &'app mut utils::sylvia_utils::App) -> Self {
             let code_id = app
                 .app
                 .borrow_mut()
@@ -198,14 +197,14 @@ pub mod test_utils {
 
     pub struct CounterContractProxy<'app> {
         pub contract_addr: Addr,
-        pub app: &'app sylvia_utils::App,
+        pub app: &'app utils::sylvia_utils::App,
     }
 
     impl<'app> CounterContractProxy<'app> {
         #[track_caller]
         pub fn set_counter_step(
             &self,
-            params: sylvia_utils::ExecParams,
+            params: utils::sylvia_utils::ExecParams,
 
             step: u32,
         ) -> Result<AppResponse, ContractError> {

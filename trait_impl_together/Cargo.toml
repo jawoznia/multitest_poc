@@ -1,10 +1,7 @@
 [package]
-name = "multitest_poc"
+name = "trait_impl_together"
 version = "0.1.0"
 edition = "2021"
-
-[features]
-mt = ["anyhow", "cw-multi-test"]
 
 [dependencies]
 sylvia = "0.2.2"
@@ -16,7 +13,9 @@ cw-storage-plus = "1.0.1"
 thiserror = "1.0.37"
 anyhow = { version = "1", optional = true }
 cw-multi-test = { version = "0.16", optional = true }
+utils = { path = "../utils" }
 
 [dev-dependencies]
 cw-multi-test = "0.16"
 anyhow = "1"
+utils = { path = "../utils", features = ["mt"] }

@@ -1,2 +1,2 @@
 [workspace]
-members = ["trait_impl_together", "all_separate"]
+members = ["trait_impl_together", "all_separate", "utils"]

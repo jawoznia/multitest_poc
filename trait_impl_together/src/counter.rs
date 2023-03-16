@@ -1,8 +1,9 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult};
 use sylvia::interface;
+use utils::error::ContractError;
 
-use crate::{contract::CounterContract, error::ContractError};
+use crate::contract::CounterContract;
 
 #[cw_serde]
 pub struct CountResponse {
@@ -27,13 +28,14 @@ pub trait Counter {
 #[cfg(test)]
 pub mod trait_utils {
     use cosmwasm_std::Addr;
+    use utils::sylvia_utils::App;
 
     pub struct CounterProxy<'app> {
         pub contract_addr: Addr,
-        pub app: &'app crate::sylvia_utils::App,
+        pub app: &'app App,
     }
     impl<'app> CounterProxy<'app> {
-        pub fn new(contract_addr: Addr, app: &'app crate::sylvia_utils::App) -> Self {
+        pub fn new(contract_addr: Addr, app: &'app App) -> Self {
             CounterProxy { contract_addr, app }
         }
     }
@@ -77,15 +79,12 @@ pub mod test_utils {
     use cosmwasm_std::StdResult;
     use cw_multi_test::{AppResponse, Executor};
 
-    use crate::error::ContractError;
-    use crate::sylvia_utils;
-
     use super::{CountResponse, ExecMsg, QueryMsg};
 
     pub trait CounterMethods {
         fn increase_count(
             &self,
-            params: sylvia_utils::ExecParams,
+            params: utils::sylvia_utils::ExecParams,
         ) -> Result<AppResponse, ContractError>;
 
         fn count(&self) -> StdResult<CountResponse>;
@@ -94,7 +93,7 @@ pub mod test_utils {
     impl<'app> CounterMethods for trait_utils::CounterProxy<'app> {
         fn increase_count(
             &self,
-            params: sylvia_utils::ExecParams,
+            params: utils::sylvia_utils::ExecParams,
         ) -> Result<AppResponse, ContractError> {
             let msg = ExecMsg::IncreaseCount {};
 
