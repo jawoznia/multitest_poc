@@ -6,9 +6,6 @@ use utils::error::ContractError;
 // This is still required
 #[cfg(test)]
 use crate::counter;
-// This is still required
-#[cfg(test)]
-use crate::counter::{ExecMsg, QueryMsg};
 
 // #[contract]
 // #[messages(counter as Counter)] => This is required to point to interface file
@@ -57,7 +54,7 @@ pub mod test_utils {
             &self,
             params: utils::sylvia_utils::ExecParams,
         ) -> Result<AppResponse, ContractError> {
-            let msg = ExecMsg::IncreaseCount {};
+            let msg = counter::ExecMsg::IncreaseCount {};
 
             self.app
                 .app
@@ -72,7 +69,7 @@ pub mod test_utils {
         }
 
         fn count(&self) -> StdResult<CountResponse> {
-            let msg = QueryMsg::Count {};
+            let msg = counter::QueryMsg::Count {};
 
             self.app
                 .app
